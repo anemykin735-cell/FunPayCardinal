@@ -656,7 +656,11 @@ class Cardinal(object):
         self.run_handlers(self.pre_init_handlers, (self,))
 
         if self.MAIN_CFG["Telegram"].getboolean("enabled"):
-            self.telegram.setup_commands()
+            try:
+                self.telegram.setup_commands()
+            except:
+                logger.warning("Произошла ошибка при установке команд.")
+                logger.debug("TRACEBACK", exc_info=True)
             try:
                 self.telegram.edit_bot()
             except AttributeError:  # todo убрать когда-то
