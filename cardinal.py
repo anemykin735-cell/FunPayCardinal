@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Callable
 
 from FunPayAPI import types
 from FunPayAPI.common.enums import SubCategoryTypes
+from Utils.cardinal_tools import validate_proxy, build_proxy
 
 if TYPE_CHECKING:
     from configparser import ConfigParser
@@ -106,15 +107,14 @@ class Cardinal(object):
         self.proxy = {}
         self.proxy_dict = cardinal_tools.load_proxy_dict()  # прокси {0: "login:password@ip:port", 1: "ip:port"...}
         if self.MAIN_CFG["Proxy"].getboolean("enable"):
-            if self.MAIN_CFG["Proxy"]["ip"] and self.MAIN_CFG["Proxy"]["port"].isnumeric():
+            if self.MAIN_CFG["Proxy"]["proxy"]:
                 logger.info(_("crd_proxy_detected"))
 
-                ip, port = self.MAIN_CFG["Proxy"]["ip"], self.MAIN_CFG["Proxy"]["port"]
-                login, password = self.MAIN_CFG["Proxy"]["login"], self.MAIN_CFG["Proxy"]["password"]
-                proxy_str = f"{f'{login}:{password}@' if login and password else ''}{ip}:{port}"
+                scheme, login, password, ip, port = validate_proxy(self.MAIN_CFG["Proxy"]["proxy"])
+                proxy_str = build_proxy(scheme, login, password, ip, port)
                 self.proxy = {
-                    "http": f"http://{proxy_str}",
-                    "https": f"http://{proxy_str}"
+                    "http": proxy_str,
+                    "https": proxy_str
                 }
 
                 if proxy_str not in self.proxy_dict.values():

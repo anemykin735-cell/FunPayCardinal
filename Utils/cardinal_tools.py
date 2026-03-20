@@ -105,19 +105,45 @@ def validate_proxy(proxy: str):
     :return: логин, пароль, IP и порт
     """
     try:
-        if "@" in proxy:
-            login_password, ip_port = proxy.split("@")
+        if "://" in proxy:
+            scheme, rest = proxy.split("://", 1)
+        else:
+            scheme = "http"
+            rest = proxy
+
+        if "@" in rest:
+            login_password, ip_port = rest.split("@")
             login, password = login_password.split(":")
-            ip, port = ip_port.split(":")
         else:
             login, password = "", ""
-            ip, port = proxy.split(":")
-        if not all([0 <= int(i) < 256 for i in ip.split(".")]) or ip.count(".") != 3 \
-                or not ip.replace(".", "").isdigit() or not 0 <= int(port) <= 65535:
-            raise Exception()
-    except:
-        raise ValueError("Прокси должны иметь формат login:password@ip:port или ip:port")  # locale
-    return login, password, ip, port
+            ip_port = rest
+
+        ip, port = ip_port.split(":")
+
+        ip_parts = ip.split(".")
+        if len(ip_parts) != 4 or not all(part.isdigit() and 0 <= int(part) < 256 for part in ip_parts):
+            raise ValueError("Неправильный IP")
+
+        if not port.isdigit() or not 0 < int(port) <= 65535:
+            raise ValueError("Неправильный порт")
+
+        if scheme not in ("http", "https", "socks5"):
+            raise ValueError("Схема прокси должна быть http, https или socks5")
+
+    except Exception:
+        raise ValueError("Прокси должен иметь формат:\n"
+                         "ip:port\nlogin:password@ip:port\n"
+                         "или socks5://ip:port\nsocks5://login:password@ip:port")
+
+    return scheme, login, password, ip, port
+
+def build_proxy(scheme: str | None, login: str, password: str, ip: str, port: str) -> str:
+    if not scheme:
+        scheme = "http"
+    if login and password:
+        return f"{scheme}://{login}:{password}@{ip}:{port}"
+    else:
+        return f"{scheme}://{ip}:{port}"
 
 
 def cache_proxy_dict(proxy_dict: dict[int, str]) -> None:
