@@ -331,7 +331,7 @@ else
     case "$edit_config" in
         [yY]|[yY][eE][sS])
             echo -ne "${CYAN}Запускаем редактирование Telegram прокси...${RESET}\n\n"
-            sudo -u $username LANG=en_US.utf8 /home/$username/pyvenv/bin/python -W ignore::SyntaxWarning /home/$username/FunPayCardinal/tg_proxy_process.py <&1
+            sudo -u $username LANG=en_US.utf8 /home/$username/pyvenv/bin/python -W ignore::SyntaxWarning /home/$username/FunPayCardinal/setup_telegram_proxy.py <&1
             ;;
         *)
             echo -ne "${CYAN}Редактирование пропущено.${RESET}"
